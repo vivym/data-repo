@@ -9,7 +9,11 @@ use tracing::instrument;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
-use crate::routes::datasets::datasets_routes;
+use crate::routes::{
+    datasets::datasets_routes,
+    ds_shard_ver_orders::ds_shard_ver_orders_routes,
+    ds_shards::ds_shards_routes,
+};
 
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations/");
 
@@ -49,13 +53,39 @@ pub async fn run(
     #[openapi(
         paths(
             ping,
+            // Dataset
             crate::routes::datasets::create_dataset,
-            crate::routes::datasets::get_dataset_by_id,
+            crate::routes::datasets::list_datasets,
+            crate::routes::datasets::get_dataset,
+            crate::routes::datasets::delete_dataset,
+            // DatasetShardVerificationOrder
+            crate::routes::ds_shard_ver_orders::create_order,
+            crate::routes::ds_shard_ver_orders::list_orders,
+            crate::routes::ds_shard_ver_orders::get_order,
+            crate::routes::ds_shard_ver_orders::delete_order,
+            // DatasetShard
+            crate::routes::ds_shards::create_ds_shard,
+            crate::routes::ds_shards::list_ds_shards,
+            crate::routes::ds_shards::get_ds_shard,
+            crate::routes::ds_shards::delete_ds_shard,
         ),
         components(
             schemas(
+                // Dataset
                 crate::routes::datasets::DatasetCreationRequest,
                 crate::routes::datasets::DatasetResponse,
+                crate::routes::datasets::ListDatasetsResponse,
+                crate::routes::datasets::DeleteDatasetResponse,
+                // DatasetShardVerificationOrder
+                crate::routes::ds_shard_ver_orders::OrderCreationRequest,
+                crate::routes::ds_shard_ver_orders::OrderResponse,
+                crate::routes::ds_shard_ver_orders::ListOrdersResponse,
+                crate::routes::ds_shard_ver_orders::DeleteOrderResponse,
+                // DatasetShard
+                crate::routes::ds_shards::DatasetShardCreationRequest,
+                crate::routes::ds_shards::DatasetShardResponse,
+                crate::routes::ds_shards::ListDatasetShardsResponse,
+                crate::routes::ds_shards::DeleteDatasetShardResponse,
             ),
         ),
         tags(
@@ -89,6 +119,8 @@ pub async fn run(
         )
         .route("/ping", get(ping))
         .nest("/v1/datasets", datasets_routes(state.clone()))
+        .nest("/v1/ds_shard_ver_orders", ds_shard_ver_orders_routes(state.clone()))
+        .nest("/v1/ds_shards", ds_shards_routes(state.clone()))
         .layer(OtelAxumLayer::default())
         .layer(cors_layer)
         .with_state(state);

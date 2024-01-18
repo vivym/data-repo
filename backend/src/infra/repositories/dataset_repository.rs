@@ -44,7 +44,13 @@ pub struct NewDatasetDB {
     pub description: String,
 }
 
-pub async fn create_dataset(
+#[derive(Debug, Deserialize)]
+pub struct DatasetsFilter {
+    skip: i64,
+    limit: i64,
+}
+
+pub async fn create(
     pool: &deadpool_diesel::postgres::Pool,
     new_dataset: NewDatasetDB,
 ) -> AppResult<DatasetModel> {
@@ -62,7 +68,7 @@ pub async fn create_dataset(
     Ok(res.into())
 }
 
-pub async fn get_dataset_by_id(
+pub async fn get_by_id(
     pool: &deadpool_diesel::postgres::Pool,
     dataset_id: i32,
 ) -> AppResult<DatasetModel> {
@@ -78,4 +84,48 @@ pub async fn get_dataset_by_id(
         .await??;
 
     Ok(res.into())
+}
+
+pub async fn get_all(
+    pool: &deadpool_diesel::postgres::Pool,
+    filter: DatasetsFilter,
+) -> AppResult<Vec<DatasetModel>> {
+    let conn = pool.get().await?;
+
+    let res = conn
+        .interact(move |conn| {
+            let query = datasets::table
+                .into_boxed::<diesel::pg::Pg>()
+                .offset(filter.skip)
+                .limit(filter.limit);
+
+            query.select(DatasetDB::as_select()).load::<DatasetDB>(conn)
+        })
+        .await??;
+
+    let datasets: Vec<DatasetModel> = res
+        .into_iter()
+        .map(Into::into)
+        .collect();
+
+    Ok(datasets)
+}
+
+pub async fn delete_by_id(
+    pool: &deadpool_diesel::postgres::Pool,
+    dataset_id: i32,
+) -> AppResult<()> {
+    let conn = pool.get().await?;
+
+    conn
+        .interact(move |conn| {
+            diesel::delete(
+                datasets::table
+                    .filter(datasets::id.eq(dataset_id))
+            )
+            .execute(conn)
+        })
+        .await??;
+
+    Ok(())
 }
