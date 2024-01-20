@@ -19,7 +19,6 @@ pub struct DatasetShardCreationRequest {
     pub ds_id: i32,
     pub uri: String,
     pub num_samples: i32,
-    pub verified: bool,
 }
 
 impl Into<NewDatasetShardDB> for DatasetShardCreationRequest {
@@ -28,7 +27,6 @@ impl Into<NewDatasetShardDB> for DatasetShardCreationRequest {
             ds_id: self.ds_id,
             uri: self.uri,
             num_samples: self.num_samples,
-            verified: self.verified,
         }
     }
 }

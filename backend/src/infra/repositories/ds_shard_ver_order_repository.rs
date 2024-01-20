@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 use crate::domain::models::ds_shard_ver_orders::DatasetShardVerificationOrderModel;
 use crate::error::AppResult;
 use crate::infra::db::schema::ds_shard_ver_orders;
+use super::{default_skip, default_limit};
 
 #[derive(Serialize, Queryable, Selectable)]
 #[diesel(table_name = ds_shard_ver_orders)]    // Use the 'ds_shard_ver_orders' table
@@ -63,14 +64,6 @@ pub struct DatasetShardVerificationOrdersFilter {
     skip: i64,
     #[serde(default = "default_limit")]
     limit: i64,
-}
-
-fn default_skip() -> i64 {
-    0
-}
-
-fn default_limit() -> i64 {
-    20
 }
 
 pub async fn create(

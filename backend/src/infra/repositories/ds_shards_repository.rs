@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 use crate::domain::models::ds_shards::DatasetShardModel;
 use crate::error::AppResult;
 use crate::infra::db::schema::ds_shards;
+use super::{default_skip, default_limit};
 
 #[derive(Serialize, Queryable, Selectable)]
 #[diesel(table_name = ds_shards)]    // Use the 'ds_shards' table
@@ -47,7 +48,6 @@ pub struct NewDatasetShardDB {
     pub ds_id: i32,
     pub uri: String,
     pub num_samples: i32,
-    pub verified: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -57,14 +57,6 @@ pub struct DatasetShardsFilter {
     skip: i64,
     #[serde(default = "default_limit")]
     limit: i64,
-}
-
-fn default_skip() -> i64 {
-    0
-}
-
-fn default_limit() -> i64 {
-    20
 }
 
 pub async fn create(

@@ -17,7 +17,7 @@ struct Args {
     #[clap(long, env)]
     cors_allow_origin: Option<Vec<String>>,
     #[clap(long, env)]
-    dataset_url: String,
+    database_url: String,
     #[clap(long, env)]
     otlp_endpoint: Option<String>,
     #[clap(long, env)]
@@ -26,13 +26,18 @@ struct Args {
 
 #[tokio::main]
 async fn main() -> AppResult<()> {
+    match dotenvy::dotenv() {
+        Ok(_) | Err(dotenvy::Error::Io(_)) => {},
+        Err(e) => panic!("Failed to load .env file. Error: {:?}", e),
+    };
+
     let args = Args::parse();
 
     let Args {
         hostname,
         port,
         cors_allow_origin,
-        dataset_url,
+        database_url,
         otlp_endpoint,
         json_log,
     } = args;
@@ -58,7 +63,7 @@ async fn main() -> AppResult<()> {
     backend::server::run(
         addr,
         cors_allow_origin,
-        dataset_url,
+        database_url,
     ).await?;
 
     Ok(())

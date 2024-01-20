@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 use crate::domain::models::datasets::DatasetModel;
 use crate::error::AppResult;
 use crate::infra::db::schema::datasets;
+use super::{default_skip, default_limit};
 
 #[derive(Serialize, Queryable, Selectable)]
 #[diesel(table_name = datasets)]    // Use the 'datasets' table
@@ -46,7 +47,9 @@ pub struct NewDatasetDB {
 
 #[derive(Debug, Deserialize)]
 pub struct DatasetsFilter {
+    #[serde(default = "default_skip")]
     skip: i64,
+    #[serde(default = "default_limit")]
     limit: i64,
 }
 

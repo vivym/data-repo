@@ -1,6 +1,10 @@
 use std::net::SocketAddr;
 
-use axum::{Router, http, routing::get, response::IntoResponse};
+use axum::{Router, http, routing::{post, get}, response::IntoResponse};
+use axum_login::{
+    tower_sessions::{MemoryStore, SessionManagerLayer},
+    AuthManagerLayerBuilder,
+};
 use axum_tracing_opentelemetry::middleware::OtelAxumLayer;
 use deadpool_diesel::postgres::{Manager, Pool};
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
@@ -13,7 +17,10 @@ use crate::routes::{
     datasets::datasets_routes,
     ds_shard_ver_orders::ds_shard_ver_orders_routes,
     ds_shards::ds_shards_routes,
+    users::users_routes,
+    auth::{login::login, logout::logout},
 };
+use crate::services::auth::Backend;
 
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations/");
 
@@ -47,7 +54,7 @@ async fn ping() -> &'static str {
 pub async fn run(
     addr: SocketAddr,
     allow_origin: Option<AllowOrigin>,
-    dataset_url: String,
+    database_url: String,
 ) -> Result<(), axum::BoxError> {
     #[derive(OpenApi)]
     #[openapi(
@@ -68,6 +75,14 @@ pub async fn run(
             crate::routes::ds_shards::list_ds_shards,
             crate::routes::ds_shards::get_ds_shard,
             crate::routes::ds_shards::delete_ds_shard,
+            // Users
+            crate::routes::users::list::list_users,
+            crate::routes::users::get::get_user,
+            crate::routes::users::delete::delete_user,
+            // Login
+            crate::routes::auth::login::login,
+            // Logout
+            crate::routes::auth::logout::logout,
         ),
         components(
             schemas(
@@ -86,6 +101,20 @@ pub async fn run(
                 crate::routes::ds_shards::DatasetShardResponse,
                 crate::routes::ds_shards::ListDatasetShardsResponse,
                 crate::routes::ds_shards::DeleteDatasetShardResponse,
+                // Users
+                crate::routes::users::schema::UserSchema,
+                crate::routes::users::create::UserCreationRequest,
+                crate::routes::users::create::UserCreationResponse,
+                crate::routes::users::list::ListUsersResponse,
+                crate::routes::users::get::GetUserResponse,
+                crate::routes::users::update::UserUpdateRequest,
+                crate::routes::users::update::UserUpdateResponse,
+                crate::routes::users::delete::DeleteUserResponse,
+                // Login
+                crate::routes::auth::login::LoginRequest,
+                crate::routes::auth::login::LoginResponse,
+                // Logout
+                crate::routes::auth::logout::LogoutResponse,
             ),
         ),
         tags(
@@ -102,10 +131,20 @@ pub async fn run(
         .allow_origin(allow_origin);
 
     let manager = Manager::new(
-        dataset_url, deadpool_diesel::Runtime::Tokio1
+        database_url, deadpool_diesel::Runtime::Tokio1
     );
     let pg_pool = Pool::builder(manager).build()?;
     run_migrations(&pg_pool).await;
+
+    // Session layer.
+    let session_store = MemoryStore::default();
+    let session_layer = SessionManagerLayer::new(session_store);
+
+    // Auth service.
+    let backend = Backend::new(pg_pool.clone());
+    let auth_layer = AuthManagerLayerBuilder::new(
+        backend, session_layer
+    ).build();
 
     let state = AppState {
         pg_pool,
@@ -121,11 +160,16 @@ pub async fn run(
         .nest("/v1/datasets", datasets_routes(state.clone()))
         .nest("/v1/ds_shard_ver_orders", ds_shard_ver_orders_routes(state.clone()))
         .nest("/v1/ds_shards", ds_shards_routes(state.clone()))
-        .layer(OtelAxumLayer::default())
+        .nest("/v1/users", users_routes(state.clone()))
+        .route("/v1/login", post(login))
+        .route("/v1/logout", get(logout))
+        .layer(auth_layer)
         .layer(cors_layer)
+        .layer(OtelAxumLayer::default())
         .with_state(state);
 
     let listener = tokio::net::TcpListener::bind(addr).await?;
+    tracing::info!("Listening on {}", addr);
     axum::serve(listener, router)
         .with_graceful_shutdown(shutdown_signal())
         .await?;

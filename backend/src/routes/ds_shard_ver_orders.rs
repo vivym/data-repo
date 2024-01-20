@@ -166,7 +166,7 @@ pub struct OrderSearchQuery {
             description = "Dataset shard verification order query successfully",
             body = ListOrdersResponse
         ),
-        (status = NOT_FOUND, description = "Dataset shard not found"),
+        (status = NOT_FOUND, description = "Dataset shard verification order not found"),
     )
 )]
 #[instrument(skip(state))]

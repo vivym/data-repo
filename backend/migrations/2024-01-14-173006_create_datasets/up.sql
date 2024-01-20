@@ -6,16 +6,4 @@ CREATE TABLE datasets (
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
-CREATE FUNCTION trigger_set_timestamp()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER set_timestamp
-BEFORE
-UPDATE ON datasets
-FOR EACH ROW
-EXECUTE PROCEDURE trigger_set_timestamp();
+SELECT diesel_manage_updated_at('datasets');

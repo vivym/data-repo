@@ -9,8 +9,4 @@ CREATE TABLE ds_shard_ver_orders (
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
-CREATE TRIGGER set_timestamp
-BEFORE
-UPDATE ON ds_shard_ver_orders
-FOR EACH ROW
-EXECUTE PROCEDURE trigger_set_timestamp();
+SELECT diesel_manage_updated_at('ds_shard_ver_orders');

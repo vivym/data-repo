@@ -116,19 +116,9 @@ pub async fn get_dataset(
 #[into_params(parameter_in = Query)]
 pub struct DatasetSearchQuery {
     /// Skip, default: 0
-    #[serde(default = "default_skip")]
-    pub skip: i64,
+    pub skip: Option<i64>,
     /// Limit, default: 20
-    #[serde(default = "default_limit")]
-    pub limit: i64,
-}
-
-fn default_skip() -> i64 {
-    0
-}
-
-fn default_limit() -> i64 {
-    20
+    pub limit: Option<i64>,
 }
 
 #[utoipa::path(
