@@ -15,12 +15,12 @@ pub struct PermissionSchema {
 }
 
 impl From<PermissionModel> for PermissionSchema {
-    fn from(user: PermissionModel) -> Self {
+    fn from(perm: PermissionModel) -> Self {
         Self {
-            id: user.id,
-            name: user.name,
-            created_at: user.created_at,
-            updated_at: user.updated_at,
+            id: perm.id,
+            name: perm.name,
+            created_at: perm.created_at,
+            updated_at: perm.updated_at,
         }
     }
 }

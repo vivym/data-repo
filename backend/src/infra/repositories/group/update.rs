@@ -14,7 +14,7 @@ pub struct UpdatedGroupDB {
 pub async fn update_by_id(
     db: &deadpool_diesel::postgres::Pool,
     group_id: i32,
-    updated_user: UpdatedGroupDB,
+    updated_group: UpdatedGroupDB,
 ) -> RepoResult<GroupModel> {
     let conn = db
         .get()
@@ -27,7 +27,7 @@ pub async fn update_by_id(
                 groups::table
                     .filter(groups::id.eq(group_id))
             )
-            .set(updated_user)
+            .set(updated_group)
             .returning(GroupDB::as_returning())
             .get_result(conn)
         })

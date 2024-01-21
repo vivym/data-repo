@@ -12,13 +12,45 @@ diesel::table! {
 }
 
 diesel::table! {
-    ds_shard_ver_orders (id) {
-        id -> Int4,
+    datasets_items_rel (ds_id, item_id) {
+        ds_id -> Int4,
+        item_id -> Int4,
+        created_at -> Timestamptz,
+    }
+}
+
+diesel::table! {
+    datasets_shards_rel (ds_id, shard_id) {
         ds_id -> Int4,
         shard_id -> Int4,
-        sample_id -> Int4,
-        score -> Int4,
-        comment -> Text,
+        created_at -> Timestamptz,
+    }
+}
+
+diesel::table! {
+    ds_item_annos (id) {
+        id -> Int4,
+        item_id -> Int4,
+        #[max_length = 255]
+        name -> Varchar,
+        #[max_length = 255]
+        typ -> Varchar,
+        #[max_length = 255]
+        uri -> Nullable<Varchar>,
+        number -> Nullable<Float8>,
+        text -> Nullable<Text>,
+        created_at -> Timestamptz,
+        updated_at -> Timestamptz,
+    }
+}
+
+diesel::table! {
+    ds_items (id) {
+        id -> Int4,
+        #[max_length = 255]
+        typ -> Varchar,
+        #[max_length = 255]
+        uri -> Varchar,
         created_at -> Timestamptz,
         updated_at -> Timestamptz,
     }
@@ -27,11 +59,8 @@ diesel::table! {
 diesel::table! {
     ds_shards (id) {
         id -> Int4,
-        ds_id -> Int4,
         #[max_length = 255]
         uri -> Varchar,
-        num_samples -> Int4,
-        verified -> Bool,
         created_at -> Timestamptz,
         updated_at -> Timestamptz,
     }
@@ -48,7 +77,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    groups_permissions (group_id, permission_id) {
+    groups_permissions_rel (group_id, permission_id) {
         group_id -> Int4,
         permission_id -> Int4,
         created_at -> Timestamptz,
@@ -83,28 +112,33 @@ diesel::table! {
 }
 
 diesel::table! {
-    users_groups (user_id, group_id) {
+    users_groups_rel (user_id, group_id) {
         user_id -> Int4,
         group_id -> Int4,
         created_at -> Timestamptz,
     }
 }
 
-diesel::joinable!(ds_shard_ver_orders -> datasets (ds_id));
-diesel::joinable!(ds_shard_ver_orders -> ds_shards (shard_id));
-diesel::joinable!(ds_shards -> datasets (ds_id));
-diesel::joinable!(groups_permissions -> groups (group_id));
-diesel::joinable!(groups_permissions -> permissions (permission_id));
-diesel::joinable!(users_groups -> groups (group_id));
-diesel::joinable!(users_groups -> users (user_id));
+diesel::joinable!(datasets_items_rel -> datasets (ds_id));
+diesel::joinable!(datasets_items_rel -> ds_items (item_id));
+diesel::joinable!(datasets_shards_rel -> datasets (ds_id));
+diesel::joinable!(datasets_shards_rel -> ds_shards (shard_id));
+diesel::joinable!(ds_item_annos -> ds_items (item_id));
+diesel::joinable!(groups_permissions_rel -> groups (group_id));
+diesel::joinable!(groups_permissions_rel -> permissions (permission_id));
+diesel::joinable!(users_groups_rel -> groups (group_id));
+diesel::joinable!(users_groups_rel -> users (user_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     datasets,
-    ds_shard_ver_orders,
+    datasets_items_rel,
+    datasets_shards_rel,
+    ds_item_annos,
+    ds_items,
     ds_shards,
     groups,
-    groups_permissions,
+    groups_permissions_rel,
     permissions,
     users,
-    users_groups,
+    users_groups_rel,
 );

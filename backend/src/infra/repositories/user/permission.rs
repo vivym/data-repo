@@ -3,8 +3,8 @@ use diesel::prelude::*;
 use crate::domain::models::permission::PermissionModel;
 use crate::infra::db::schema::{
     users,
-    users_groups,
-    groups_permissions,
+    users_groups_rel,
+    groups_permissions_rel,
     permissions,
 };
 use crate::infra::repositories::{
@@ -24,12 +24,12 @@ pub async fn get_permissions(
     let res = conn
         .interact(move |conn| {
             users::table
-                .inner_join(users_groups::table)
-                .inner_join(groups_permissions::table.on(
-                    groups_permissions::group_id.eq(users_groups::group_id)
+                .inner_join(users_groups_rel::table)
+                .inner_join(groups_permissions_rel::table.on(
+                    groups_permissions_rel::group_id.eq(users_groups_rel::group_id)
                 ))
                 .inner_join(permissions::table.on(
-                    permissions::id.eq(groups_permissions::permission_id)
+                    permissions::id.eq(groups_permissions_rel::permission_id)
                 ))
                 .filter(users::id.eq(user_id))
                 .select(PermissionDB::as_select())

@@ -19,7 +19,7 @@ pub struct DeletePermissionResponse {
 
 #[utoipa::path(
     delete,
-    path = "/v1/permission/{id}",
+    path = "/v1/permissions/{id}",
     params(
         ("id", Path, description = "Permission id")
     ),

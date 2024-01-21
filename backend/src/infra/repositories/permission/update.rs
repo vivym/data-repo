@@ -13,8 +13,8 @@ pub struct UpdatedPermissionDB {
 
 pub async fn update_by_id(
     db: &deadpool_diesel::postgres::Pool,
-    group_id: i32,
-    updated_user: UpdatedPermissionDB,
+    perm_id: i32,
+    updated_perm: UpdatedPermissionDB,
 ) -> RepoResult<PermissionModel> {
     let conn = db
         .get()
@@ -25,9 +25,9 @@ pub async fn update_by_id(
         .interact(move |conn| {
             diesel::update(
                 permissions::table
-                    .filter(permissions::id.eq(group_id))
+                    .filter(permissions::id.eq(perm_id))
             )
-            .set(updated_user)
+            .set(updated_perm)
             .returning(PermissionDB::as_returning())
             .get_result(conn)
         })

@@ -30,7 +30,7 @@ CREATE TABLE permissions (
 SELECT diesel_manage_updated_at('permissions');
 
 -- relationship between users and groups
-CREATE TABLE users_groups (
+CREATE TABLE users_groups_rel (
     user_id INTEGER NOT NULL REFERENCES users(id),
     group_id INTEGER NOT NULL REFERENCES groups(id),
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
@@ -38,7 +38,7 @@ CREATE TABLE users_groups (
 );
 
 -- relationship between groups and permissions
-CREATE TABLE groups_permissions (
+CREATE TABLE groups_permissions_rel (
     group_id INTEGER NOT NULL REFERENCES groups(id),
     permission_id INTEGER NOT NULL REFERENCES permissions(id),
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),

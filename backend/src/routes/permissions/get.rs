@@ -33,7 +33,7 @@ pub async fn get_permission(
     State(state): State<AppState>,
     PathExtractor(perm_id): PathExtractor<i32>,
 ) -> Result<Json<GetPermissionResponse>, PermissionError> {
-    let user = repositories::permission::get_by_id(
+    let perm = repositories::permission::get_by_id(
         &state.pg_pool, perm_id
     )
         .await
@@ -41,7 +41,7 @@ pub async fn get_permission(
 
     Ok(Json(GetPermissionResponse {
         code: 0,
-        data: Some(PermissionSchema::from(user)),
+        data: Some(PermissionSchema::from(perm)),
         msg: None,
     }))
 }

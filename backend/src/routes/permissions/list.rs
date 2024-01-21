@@ -39,20 +39,20 @@ pub async fn list_permissions(
     State(state): State<AppState>,
     Query(params): Query<PermissionsFilter>,
 ) -> Result<Json<ListPermissionsResponse>, PermissionError> {
-    let users = repositories::permission::get_all(
+    let perms = repositories::permission::get_all(
         &state.pg_pool, params
     )
         .await
         .map_err(PermissionError::RepoError)?;
 
-    let users = users
+    let perms = perms
         .into_iter()
         .map(PermissionSchema::from)
         .collect();
 
     Ok(Json(ListPermissionsResponse {
         code: 0,
-        data: Some(users),
+        data: Some(perms),
         msg: None,
     }))
 }

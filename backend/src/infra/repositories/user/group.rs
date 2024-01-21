@@ -3,7 +3,7 @@ use diesel::prelude::*;
 use crate::domain::models::group::GroupModel;
 use crate::infra::db::schema::{
     users,
-    users_groups,
+    users_groups_rel,
     groups
 };
 use crate::infra::repositories::{
@@ -23,9 +23,9 @@ pub async fn get_groups(
     let res = conn
         .interact(move |conn| {
             users::table
-                .inner_join(users_groups::table)
+                .inner_join(users_groups_rel::table)
                 .inner_join(groups::table.on(
-                    groups::id.eq(users_groups::group_id)
+                    groups::id.eq(users_groups_rel::group_id)
                 ))
                 .filter(users::id.eq(user_id))
                 .select(GroupDB::as_select())

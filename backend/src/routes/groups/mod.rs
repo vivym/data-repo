@@ -9,7 +9,7 @@ pub mod get;
 pub mod list;
 pub mod schema;
 
-pub fn users_routes(state: AppState) -> Router<AppState> {
+pub fn groups_routes(state: AppState) -> Router<AppState> {
     Router::new()
         .route("/", post(create::create_group))
         .route("/", get(list::list_groups))

@@ -15,12 +15,12 @@ pub struct GroupSchema {
 }
 
 impl From<GroupModel> for GroupSchema {
-    fn from(user: GroupModel) -> Self {
+    fn from(group: GroupModel) -> Self {
         Self {
-            id: user.id,
-            name: user.name,
-            created_at: user.created_at,
-            updated_at: user.updated_at,
+            id: group.id,
+            name: group.name,
+            created_at: group.created_at,
+            updated_at: group.updated_at,
         }
     }
 }

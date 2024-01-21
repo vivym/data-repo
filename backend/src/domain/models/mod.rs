@@ -1,6 +1,9 @@
-pub mod datasets;
-pub mod ds_shard_ver_orders;
-pub mod ds_shards;
+pub mod dataset_item;
+pub mod dataset_shard;
+pub mod dataset;
+pub mod ds_item_anno;
+pub mod ds_item;
+pub mod ds_shard;
 pub mod group_perm;
 pub mod group;
 pub mod permission;
