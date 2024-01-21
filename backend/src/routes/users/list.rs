@@ -18,8 +18,8 @@ pub struct UserSearchQuery {
     pub nickname: Option<String>,
     /// Email
     pub email: Option<String>,
-    /// Verified
-    pub verified: Option<bool>,
+    /// Whether the user is active
+    pub is_active: Option<bool>,
     /// Skip, default: 0
     pub skip: Option<i64>,
     /// Limit, default: 20

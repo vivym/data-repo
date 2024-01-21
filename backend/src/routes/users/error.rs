@@ -7,6 +7,7 @@ use crate::infra::repositories::error::RepoError;
 pub enum UserError {
     NotFound,
     DuplicateUsername,
+    InternalServerError(String),
     RepoError(RepoError),
 }
 
@@ -23,9 +24,14 @@ impl IntoResponse for UserError {
                 20002,
                 format!("Username already exists."),
             ),
-            Self::RepoError(_) => (
+            Self::InternalServerError(msg) => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 20003,
+                format!("Internal server error: {}", msg),
+            ),
+            Self::RepoError(_) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                20004,
                 format!("Internal server error."),
             ),
         };

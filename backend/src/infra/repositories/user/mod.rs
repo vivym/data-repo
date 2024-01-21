@@ -24,6 +24,7 @@ pub use read::{
 pub use update::{
     UpdatedUserDB,
     update_by_id,
+    activate_by_id,
 };
 
 pub use delete::delete_by_id;

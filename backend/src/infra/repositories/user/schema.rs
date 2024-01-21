@@ -13,7 +13,7 @@ pub struct UserDB {
     pub hashed_password: String,
     pub nickname: String,
     pub avatar_uri: String,
-    pub verified: bool,
+    pub is_active: bool,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }
@@ -26,7 +26,7 @@ impl Into<UserModel> for UserDB {
             hashed_password: self.hashed_password,
             nickname: self.nickname,
             avatar_uri: self.avatar_uri,
-            verified: self.verified,
+            is_active: self.is_active,
             created_at: self.created_at,
             updated_at: self.updated_at,
         }

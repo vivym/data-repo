@@ -1,10 +1,6 @@
 use std::net::SocketAddr;
 
 use axum::{Router, http, routing::{post, get}, response::IntoResponse};
-use axum_login::{
-    tower_sessions::{MemoryStore, SessionManagerLayer},
-    AuthManagerLayerBuilder,
-};
 use axum_tracing_opentelemetry::middleware::OtelAxumLayer;
 use deadpool_diesel::postgres::{Manager, Pool};
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
@@ -20,13 +16,13 @@ use crate::routes::{
     permissions::permissions_routes,
     users::users_routes,
 };
-use crate::services::auth::Backend;
 
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations/");
 
 #[derive(Clone)]
 pub struct AppState {
     pub pg_pool: Pool,
+    pub jwt_secret: String,
 }
 
 #[instrument]
@@ -55,6 +51,7 @@ pub async fn run(
     addr: SocketAddr,
     allow_origin: Option<AllowOrigin>,
     database_url: String,
+    jwt_secret: String
 ) -> Result<(), axum::BoxError> {
     #[derive(OpenApi)]
     #[openapi(
@@ -185,34 +182,22 @@ pub async fn run(
     let pg_pool = Pool::builder(manager).build()?;
     run_migrations(&pg_pool).await;
 
-    // Session layer.
-    let session_store = MemoryStore::default();
-    let session_layer = SessionManagerLayer::new(session_store);
-
-    // Auth service.
-    let backend = Backend::new(pg_pool.clone());
-    let auth_layer = AuthManagerLayerBuilder::new(
-        backend, session_layer
-    ).build();
-
     let state = AppState {
-        pg_pool,
+        pg_pool, jwt_secret
     };
 
     let router = Router::new()
-        .fallback(not_found)
-        .merge(
-            SwaggerUi::new("/docs")
-                .url("/api-doc/openapi.json", ApiDoc::openapi()),
-        )
-        .route("/ping", get(ping))
-        .route("/v1/login", post(login))
-        .route("/v1/logout", get(logout))
         .nest("/v1/datasets", datasets_routes(state.clone()))
         .nest("/v1/groups", groups_routes(state.clone()))
         .nest("/v1/permissions", permissions_routes(state.clone()))
         .nest("/v1/users", users_routes(state.clone()))
-        .layer(auth_layer)
+        .route("/login", post(login))
+        .route("/logout", get(logout))
+        .merge(
+            SwaggerUi::new("/docs")
+                .url("/api-doc/openapi.json", ApiDoc::openapi()),
+        )
+        .fallback(not_found)
         .layer(cors_layer)
         .layer(OtelAxumLayer::default())
         .with_state(state);

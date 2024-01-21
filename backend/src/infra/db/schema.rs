@@ -105,7 +105,7 @@ diesel::table! {
         nickname -> Varchar,
         #[max_length = 255]
         avatar_uri -> Varchar,
-        verified -> Bool,
+        is_active -> Bool,
         created_at -> Timestamptz,
         updated_at -> Timestamptz,
     }

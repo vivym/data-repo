@@ -22,6 +22,8 @@ struct Args {
     otlp_endpoint: Option<String>,
     #[clap(long, env)]
     json_log: bool,
+    #[clap(long, env)]
+    jwt_secret: String,
 }
 
 #[tokio::main]
@@ -40,6 +42,7 @@ async fn main() -> AppResult<()> {
         database_url,
         otlp_endpoint,
         json_log,
+        jwt_secret,
     } = args;
 
     setup_logging(otlp_endpoint, json_log);
@@ -64,6 +67,7 @@ async fn main() -> AppResult<()> {
         addr,
         cors_allow_origin,
         database_url,
+        jwt_secret,
     ).await?;
 
     Ok(())

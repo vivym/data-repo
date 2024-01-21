@@ -1,5 +1,6 @@
+use argon2::{password_hash::SaltString, Argon2, PasswordHasher};
 use axum::{extract::State, Json};
-use password_auth::generate_hash;
+use rand_core::OsRng;
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
 use utoipa::ToSchema;
@@ -21,14 +22,26 @@ pub struct UserUpdateRequest {
     pub avatar_uri: Option<String>,
 }
 
-impl Into<UpdatedUserDB> for UserUpdateRequest {
-    fn into(self) -> UpdatedUserDB {
-        UpdatedUserDB {
-            hashed_password: self.password
-                .map(|password| generate_hash(password.as_bytes())),
+impl TryInto<UpdatedUserDB> for UserUpdateRequest {
+    type Error = UserError;
+
+    fn try_into(self) -> Result<UpdatedUserDB, UserError> {
+        let salt = SaltString::generate(&mut OsRng);
+        let hashed_password = match self.password {
+            Some(password) => Some(
+                Argon2::default()
+                    .hash_password(password.as_bytes(), &salt)
+                    .map_err(|_| UserError::InternalServerError("failed to hash the password".to_owned()))?
+                    .to_string()
+            ),
+            None => None,
+        };
+
+        Ok(UpdatedUserDB {
+            hashed_password,
             nickname: self.nickname,
             avatar_uri: self.avatar_uri,
-        }
+        })
     }
 }
 
@@ -42,6 +55,9 @@ pub struct UserUpdateResponse {
 #[utoipa::path(
     put,
     path = "/v1/users/{id}",
+    params(
+        ("id", Path, description = "User id")
+    ),
     request_body = UserUpdateRequest,
     responses(
         (
@@ -65,7 +81,7 @@ pub async fn update_user(
         .ok_or(UserError::NotFound)?;
 
     let user = repositories::user::update_by_id(
-        &state.pg_pool, user_id, updated_user.into()
+        &state.pg_pool, user_id, updated_user.try_into()?
     )
         .await
         .map_err(UserError::RepoError)?;

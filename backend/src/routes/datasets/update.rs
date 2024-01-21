@@ -36,6 +36,9 @@ pub struct DatasetUpdateResponse {
 #[utoipa::path(
     put,
     path = "/v1/datasets/{id}",
+    params(
+        ("id", Path, description = "Dataset id")
+    ),
     request_body = DatasetUpdateRequest,
     responses(
         (

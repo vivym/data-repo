@@ -39,3 +39,29 @@ pub async fn update_by_id(
 
     Ok(res.into())
 }
+
+pub async fn activate_by_id(
+    db: &deadpool_diesel::postgres::Pool,
+    user_id: i32,
+) -> RepoResult<UserModel> {
+    let conn = db
+        .get()
+        .await
+        .map_err(RepoError::Pool)?;
+
+    let res = conn
+        .interact(move |conn| {
+            diesel::update(
+                users::table
+                    .filter(users::id.eq(user_id))
+            )
+            .set(users::is_active.eq(true))
+            .returning(UserDB::as_returning())
+            .get_result(conn)
+        })
+        .await
+        .map_err(map_interact_error)?
+        .map_err(RepoError::Diesel)?;
+
+    Ok(res.into())
+}

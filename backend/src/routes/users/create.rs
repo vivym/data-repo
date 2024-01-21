@@ -1,5 +1,6 @@
+use argon2::{password_hash::SaltString, Argon2, PasswordHasher};
 use axum::{extract::State, Json};
-use password_auth::generate_hash;
+use rand_core::OsRng;
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
 use utoipa::ToSchema;
@@ -16,18 +17,25 @@ pub struct UserCreationRequest {
     pub username: String,
     pub password: String,
     pub nickname: String,
-    pub email: String,
     pub avatar_uri: String,
 }
 
-impl Into<NewUserDB> for UserCreationRequest {
-    fn into(self) -> NewUserDB {
-        NewUserDB {
+impl TryInto<NewUserDB> for UserCreationRequest {
+    type Error = UserError;
+
+    fn try_into(self) -> Result<NewUserDB, UserError> {
+        let salt = SaltString::generate(&mut OsRng);
+        let hashed_password = Argon2::default()
+            .hash_password(self.password.as_bytes(), &salt)
+            .map_err(|_| UserError::InternalServerError("failed to hash the password".to_owned()))?
+            .to_string();
+
+        Ok(NewUserDB {
             username: self.username,
-            hashed_password: generate_hash(self.password.as_bytes()),
+            hashed_password,
             nickname: self.nickname,
             avatar_uri: self.avatar_uri,
-        }
+        })
     }
 }
 
@@ -66,7 +74,7 @@ pub async fn create_user(
     }
 
     let created_user = repositories::user::create(
-        &state.pg_pool, new_user.into()
+        &state.pg_pool, new_user.try_into()?
     )
         .await
         .map_err(UserError::RepoError)?;

@@ -14,7 +14,7 @@ use super::schema::UserDB;
 pub struct UsersFilter {
     username: Option<String>,
     nickname: Option<String>,
-    verified: Option<bool>,
+    is_active: Option<bool>,
     #[serde(default = "default_skip")]
     skip: i64,
     #[serde(default = "default_limit")]
@@ -118,8 +118,8 @@ pub async fn get_all(
                 query = query.filter(users::nickname.eq(nickname));
             }
 
-            if let Some(verified) = filter.verified {
-                query = query.filter(users::verified.eq(verified));
+            if let Some(is_active) = filter.is_active {
+                query = query.filter(users::is_active.eq(is_active));
             }
 
             query = query

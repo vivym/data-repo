@@ -7,7 +7,7 @@ pub struct UserModel {
     pub hashed_password: String,
     pub nickname: String,
     pub avatar_uri: String,
-    pub verified: bool,
+    pub is_active: bool,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }
@@ -22,7 +22,7 @@ impl std::fmt::Debug for UserModel {
             .field("hashed_password", &"[redacted]")
             .field("nickname", &self.nickname)
             .field("avatar_uri", &self.avatar_uri)
-            .field("verified", &self.verified)
+            .field("is_active", &self.is_active)
             .field("created_at", &self.created_at)
             .field("updated_at", &self.updated_at)
             .finish()

@@ -10,7 +10,7 @@ pub struct UserSchema {
     pub username: String,
     pub nickname: String,
     pub avatar_uri: String,
-    pub verified: bool,
+    pub is_active: bool,
     #[schema(value_type = String)]
     created_at: NaiveDateTime,
     #[schema(value_type = String)]
@@ -24,7 +24,7 @@ impl From<UserModel> for UserSchema {
             username: user.username,
             nickname: user.nickname,
             avatar_uri: user.avatar_uri,
-            verified: user.verified,
+            is_active: user.is_active,
             created_at: user.created_at,
             updated_at: user.updated_at,
         }

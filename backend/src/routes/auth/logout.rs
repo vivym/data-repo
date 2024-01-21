@@ -1,9 +1,9 @@
-use axum::Json;
+use axum::{Json, response::IntoResponse, http::header};
+use axum_extra::extract::cookie::{Cookie, SameSite};
 use serde::Serialize;
 use tracing::instrument;
 use utoipa::ToSchema;
 
-use crate::services::auth::AuthSession;
 use super::error::AuthError;
 
 #[derive(Debug, Serialize, ToSchema)]
@@ -14,18 +14,31 @@ pub struct LogoutResponse {
 
 #[utoipa::path(
     get,
-    path = "/v1/logout",
+    path = "/logout",
     responses(
         (status = 200, description = "Logout successfully", body = LogoutResponse),
     )
 )]
-#[instrument(skip(auth_session))]
-pub async fn logout(mut auth_session: AuthSession) -> Result<Json<LogoutResponse>, AuthError> {
-    match auth_session.logout().await {
-        Ok(_) => Ok(Json(LogoutResponse {
-            code: 0,
-            msg: None,
-        })),
-        Err(_) => Err(AuthError::InternalServerError("logout failed".to_owned())),
-    }
+#[instrument]
+pub async fn logout() -> Result<impl IntoResponse, AuthError> {
+    let cookie = Cookie::build(("token", ""))
+        .path("/")
+        .max_age(time::Duration::hours(-1))
+        .same_site(SameSite::Lax)
+        .http_only(true);
+
+    let mut response = Json(LogoutResponse {
+        code: 0,
+        msg: None,
+    })
+        .into_response();
+
+    response
+        .headers_mut()
+        .insert(
+            header::SET_COOKIE,
+            cookie.to_string().parse().unwrap(),
+        );
+
+    Ok(response)
 }
