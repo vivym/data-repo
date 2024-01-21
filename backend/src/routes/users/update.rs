@@ -1,11 +1,12 @@
 use argon2::{password_hash::SaltString, Argon2, PasswordHasher};
-use axum::{extract::State, Json};
+use axum::{extract::State, Json, Extension};
 use rand_core::OsRng;
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
 use utoipa::ToSchema;
 
 use crate::{
+    domain::models::user::UserModel,
     infra::repositories::{self, user::UpdatedUserDB},
     server::AppState,
     utils::extractors::{
@@ -82,6 +83,44 @@ pub async fn update_user(
 
     let user = repositories::user::update_by_id(
         &state.pg_pool, user_id, updated_user.try_into()?
+    )
+        .await
+        .map_err(UserError::RepoError)?;
+
+    Ok(Json(UserUpdateResponse {
+        code: 0,
+        data: Some(UserSchema::from(user)),
+        msg: None,
+    }))
+}
+
+#[utoipa::path(
+    put,
+    path = "/v1/users/me",
+    request_body = UserUpdateRequest,
+    responses(
+        (
+            status = 200,
+            description = "User update successfully",
+            body = UserUpdateResponse,
+        ),
+    )
+)]
+#[instrument(skip(state))]
+pub async fn update_me(
+    State(state): State<AppState>,
+    Extension(user): Extension<UserModel>,
+    JsonExtractor(updated_user): JsonExtractor<UserUpdateRequest>,
+) -> Result<Json<UserUpdateResponse>, UserError> {
+    repositories::user::try_get_by_id(
+        &state.pg_pool, user.id
+    )
+        .await
+        .map_err(UserError::RepoError)?
+        .ok_or(UserError::NotFound)?;
+
+    let user = repositories::user::update_by_id(
+        &state.pg_pool, user.id, updated_user.try_into()?
     )
         .await
         .map_err(UserError::RepoError)?;

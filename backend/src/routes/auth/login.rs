@@ -6,10 +6,7 @@ use serde::{Serialize, Deserialize};
 use tracing::instrument;
 use utoipa::ToSchema;
 
-use crate::{
-    infra::repositories,
-    server::AppState,
-};
+use crate::{infra::repositories, server::AppState};
 use super::error::AuthError;
 
 #[derive(Debug, Deserialize, ToSchema)]
@@ -25,7 +22,7 @@ pub struct LoginResponse {
     pub msg: Option<String>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct TokenClaims {
     pub sub: i32,
     pub perms: Vec<i32>,

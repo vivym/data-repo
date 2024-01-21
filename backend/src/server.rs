@@ -92,13 +92,18 @@ pub async fn run(
             // users
             crate::routes::users::create::create_user,
             crate::routes::users::get::get_user,
+            crate::routes::users::get::get_me,
             crate::routes::users::list::list_users,
             crate::routes::users::update::update_user,
+            crate::routes::users::update::update_me,
             crate::routes::users::delete::delete_user,
+            crate::routes::users::activate::activate_user,
             // users/groups
             crate::routes::users::group::get_user_groups,
+            crate::routes::users::group::get_me_groups,
             // users/permissions
             crate::routes::users::permission::get_user_permissions,
+            crate::routes::users::permission::get_me_permissions,
         ),
         components(
             schemas(
@@ -157,6 +162,7 @@ pub async fn run(
                 crate::routes::users::update::UserUpdateRequest,
                 crate::routes::users::update::UserUpdateResponse,
                 crate::routes::users::delete::DeleteUserResponse,
+                crate::routes::users::activate::ActivateUserResponse,
                 // users/groups
                 crate::routes::users::group::GetUserGroupsResponse,
                 // users/permissions

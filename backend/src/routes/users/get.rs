@@ -1,9 +1,10 @@
-use axum::{extract::State, Json};
+use axum::{extract::State, Json, Extension};
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
 use utoipa::ToSchema;
 
 use crate::{
+    domain::models::user::UserModel,
     infra::repositories,
     server::AppState,
     utils::extractors::path::PathExtractor,
@@ -35,6 +36,32 @@ pub async fn get_user(
 ) -> Result<Json<GetUserResponse>, UserError> {
     let user = repositories::user::get_by_id(
         &state.pg_pool, user_id
+    )
+        .await
+        .map_err(UserError::RepoError)?;
+
+    Ok(Json(GetUserResponse {
+        code: 0,
+        data: Some(UserSchema::from(user)),
+        msg: None,
+    }))
+}
+
+#[utoipa::path(
+    get,
+    path = "/v1/users/me",
+    responses(
+        (status = 200, description = "User query successfully", body = GetUserResponse),
+        (status = NOT_FOUND, description = "User not found"),
+    )
+)]
+#[instrument(skip(state))]
+pub async fn get_me(
+    State(state): State<AppState>,
+    Extension(user): Extension<UserModel>,
+) -> Result<Json<GetUserResponse>, UserError> {
+    let user = repositories::user::get_by_id(
+        &state.pg_pool, user.id
     )
         .await
         .map_err(UserError::RepoError)?;
