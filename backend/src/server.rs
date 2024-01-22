@@ -179,7 +179,11 @@ pub async fn run(
     let allow_origin = allow_origin.unwrap_or(AllowOrigin::any());
     let cors_layer = CorsLayer::new()
         .allow_methods([http::Method::GET, http::Method::POST])
-        .allow_headers([http::header::CONTENT_TYPE])
+        .allow_headers([
+            http::header::AUTHORIZATION,
+            http::header::CONTENT_TYPE,
+        ])
+        .allow_credentials(true)
         .allow_origin(allow_origin);
 
     let manager = Manager::new(
