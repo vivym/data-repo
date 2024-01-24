@@ -178,7 +178,12 @@ pub async fn run(
     // CORS layer
     let allow_origin = allow_origin.unwrap_or(AllowOrigin::any());
     let cors_layer = CorsLayer::new()
-        .allow_methods([http::Method::GET, http::Method::POST])
+        .allow_methods([
+            http::Method::GET,
+            http::Method::POST,
+            http::Method::PUT,
+            http::Method::DELETE,
+        ])
         .allow_headers([
             http::header::AUTHORIZATION,
             http::header::CONTENT_TYPE,

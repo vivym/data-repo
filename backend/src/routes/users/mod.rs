@@ -52,6 +52,11 @@ pub fn users_routes(state: AppState) -> Router<AppState> {
                 .layer(AuthLayer::new(state.clone(), Some("users.update_all".to_string()))),
         )
         .route(
+            "/",
+            delete(delete::delete_users)
+                .layer(AuthLayer::new(state.clone(), Some("users.delete_all".to_string()))),
+        )
+        .route(
             "/:id",
             delete(delete::delete_user)
                 .layer(AuthLayer::new(state.clone(), Some("users.delete_all".to_string()))),
@@ -59,6 +64,11 @@ pub fn users_routes(state: AppState) -> Router<AppState> {
         .route(
             "/:id/activate",
             get(activate::activate_user)
+                .layer(AuthLayer::new(state.clone(), Some("users.activate".to_string()))),
+        )
+        .route(
+            "/:id/deactivate",
+            get(activate::deactivate_user)
                 .layer(AuthLayer::new(state.clone(), Some("users.activate".to_string()))),
         )
         .route(

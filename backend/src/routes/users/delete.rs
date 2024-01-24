@@ -6,9 +6,14 @@ use utoipa::ToSchema;
 use crate::{
     infra::repositories,
     server::AppState,
-    utils::extractors::path::PathExtractor,
+    utils::extractors::{json::JsonExtractor, path::PathExtractor},
 };
 use super::error::UserError;
+
+#[derive(Debug, Deserialize, ToSchema)]
+pub struct BatchDeleteUserRequest {
+    pub ids: Vec<i32>,
+}
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct DeleteUserResponse {
@@ -34,6 +39,31 @@ pub async fn delete_user(
     PathExtractor(user_id): PathExtractor<i32>,
 ) -> Result<Json<DeleteUserResponse>, UserError> {
     repositories::user::delete_by_id(&state.pg_pool, user_id)
+        .await
+        .map_err(UserError::RepoError)?;
+
+    Ok(Json(DeleteUserResponse {
+        code: 0,
+        data: true,
+        msg: None,
+    }))
+}
+
+#[utoipa::path(
+    delete,
+    path = "/v1/users",
+    request_body = BatchDeleteUserRequest,
+    responses(
+        (status = 200, description = "User batch deletion successfully", body = DeleteUserResponse),
+        (status = NOT_FOUND, description = "User not found"),
+    )
+)]
+#[instrument(skip(state))]
+pub async fn delete_users(
+    State(state): State<AppState>,
+    JsonExtractor(BatchDeleteUserRequest { ids }): JsonExtractor<BatchDeleteUserRequest>,
+) -> Result<Json<DeleteUserResponse>, UserError> {
+    repositories::user::delete_by_ids(&state.pg_pool, ids)
         .await
         .map_err(UserError::RepoError)?;
 

@@ -22,14 +22,14 @@ declare namespace API {
   }
 
   type User = {
-    id: number;
-    username: string;
-    nickname: string;
-    avatar_uri: string;
-    is_active: boolean;
+    id?: number;
+    username?: string;
+    nickname?: string;
+    avatar_uri?: string;
+    is_active?: boolean;
     permissions?: Permission[];
-    created_at: string;
-    updated_at: string;
+    created_at?: string;
+    updated_at?: string;
   };
 
   type LoginResult = {
@@ -37,6 +37,20 @@ declare namespace API {
     data?: string;
     msg?: string;
   };
+
+  type Group = {
+    id: number;
+    name: string;
+    created_at?: string;
+    updated_at?: string;
+  }
+
+  type Permission = {
+    id: number;
+    name: string;
+    created_at?: string;
+    updated_at?: string;
+  }
 
   type PageParams = {
     current?: number;

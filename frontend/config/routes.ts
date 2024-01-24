@@ -55,14 +55,24 @@ export default [
         name: 'list',
         component: './User/UserList',
       },
+      {
+        path: '/users/groups',
+        name: 'groups',
+        component: './User/GroupList',
+      },
+      {
+        path: '/users/permissions',
+        name: 'permissions',
+        component: './User/PermissionList',
+      },
     ],
   },
-  {
-    name: 'list.table-list',
-    icon: 'table',
-    path: '/list',
-    component: './TableList',
-  },
+  // {
+  //   name: 'list.table-list',
+  //   icon: 'table',
+  //   path: '/list',
+  //   component: './TableList',
+  // },
   {
     path: '/',
     redirect: '/welcome',

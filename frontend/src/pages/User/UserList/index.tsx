@@ -1,4 +1,4 @@
-import { addUser, removeRule, listUsers, updateRule } from '@/services/ant-design-pro/api';
+import { addUser, activateUser, deactivateUser, deleteUsers, listUsers, updateUser } from '@/services/ant-design-pro/api';
 import { PlusOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns, ProDescriptionsItemProps } from '@ant-design/pro-components';
 import {
@@ -7,7 +7,6 @@ import {
   PageContainer,
   ProDescriptions,
   ProFormText,
-  ProFormTextArea,
   ProTable,
 } from '@ant-design/pro-components';
 import { FormattedMessage, useIntl } from '@umijs/max';
@@ -26,6 +25,8 @@ const handleAdd = async (fields: API.User & { password: string }) => {
   try {
     await addUser({
       username: fields.username,
+      nickname: fields.nickname,
+      avatar_uri: fields.avatar_uri,
       password: fields.password,
     });
     hide();
@@ -47,10 +48,13 @@ const handleAdd = async (fields: API.User & { password: string }) => {
 const handleUpdate = async (fields: FormValueType) => {
   const hide = message.loading('Configuring');
   try {
-    await updateRule({
-      name: fields.name,
-      desc: fields.desc,
-      key: fields.key,
+    await updateUser({
+      userId: fields.id!!,
+      updatedUser: {
+        password: fields.password,
+        nickname: fields.nickname,
+        avatar_uri: fields.avatar_uri,
+      },
     });
     hide();
 
@@ -69,12 +73,12 @@ const handleUpdate = async (fields: FormValueType) => {
  *
  * @param selectedRows
  */
-const handleRemove = async (selectedRows: API.RuleListItem[]) => {
+const handleRemove = async (selectedRows: API.User[]) => {
   const hide = message.loading('正在删除');
   if (!selectedRows) return true;
   try {
-    await removeRule({
-      key: selectedRows.map((row) => row.key),
+    await deleteUsers({
+      ids: selectedRows.map((row) => row.id!!),
     });
     hide();
     message.success('Deleted successfully and will refresh soon');
@@ -188,7 +192,7 @@ const UserList: React.FC = () => {
       valueType: 'option',
       render: (_, record) => [
         <a
-          key="config"
+          key="edit-user"
           onClick={() => {
             handleUpdateModalOpen(true);
             setCurrentRow(record);
@@ -196,7 +200,20 @@ const UserList: React.FC = () => {
         >
           <FormattedMessage id="pages.userList.colums.op.edit" defaultMessage="Edit" />
         </a>,
-        <a key="subscribeAlert" href="https://procomponents.ant.design/">
+        <a
+          key="activate-user"
+          onClick={(e) => {
+            e.preventDefault();
+            if (record.is_active) {
+              deactivateUser({ userId: record.id!! });
+            } else {
+              activateUser({ userId: record.id!! });
+            }
+            if (actionRef.current) {
+              actionRef.current.reload();
+            }
+          }}
+        >
           {record.is_active ? (
             <FormattedMessage
               id="pages.userList.colums.op.deactivate"
@@ -221,7 +238,7 @@ const UserList: React.FC = () => {
           defaultMessage: 'Enquiry form',
         })}
         actionRef={actionRef}
-        rowKey="key"
+        rowKey="id"
         search={{
           labelWidth: 120,
         }}
@@ -268,22 +285,28 @@ const UserList: React.FC = () => {
           </Button>
           <Button type="primary">
             <FormattedMessage
-              id="pages.searchTable.batchApproval"
-              defaultMessage="Batch approval"
+              id="pages.userList.batchActivate"
+              defaultMessage="Batch Activate"
+            />
+          </Button>
+          <Button type="primary">
+            <FormattedMessage
+              id="pages.userList.batchDeactivate"
+              defaultMessage="Batch Deactivate"
             />
           </Button>
         </FooterToolbar>
       )}
       <ModalForm
         title={intl.formatMessage({
-          id: 'pages.searchTable.createForm.newRule',
-          defaultMessage: 'New rule',
+          id: 'pages.userList.createForm.newUser',
+          defaultMessage: 'New User',
         })}
         width="400px"
         open={createModalOpen}
         onOpenChange={handleModalOpen}
         onFinish={async (value) => {
-          const success = await handleAdd(value as API.User);
+          const success = await handleAdd(value as API.User & { password: string });
           if (success) {
             handleModalOpen(false);
             if (actionRef.current) {
@@ -293,21 +316,90 @@ const UserList: React.FC = () => {
         }}
       >
         <ProFormText
+          label={intl.formatMessage({
+            id: 'pages.userList.createForm.username',
+            defaultMessage: 'Username',
+          })}
           rules={[
             {
               required: true,
+              min: 3,
+              max: 20,
               message: (
                 <FormattedMessage
-                  id="pages.searchTable.ruleName"
-                  defaultMessage="Rule name is required"
+                  id="pages.userList.createForm.username.tooltip"
+                  defaultMessage="Username is required (3 ~ 20 chars)"
                 />
               ),
             },
           ]}
           width="md"
-          name="name"
+          name="username"
         />
-        <ProFormTextArea width="md" name="desc" />
+        <ProFormText
+          label={intl.formatMessage({
+            id: 'pages.userList.createForm.nickname',
+            defaultMessage: 'Nickname',
+          })}
+          rules={[
+            {
+              required: true,
+              min: 3,
+              max: 20,
+              message: (
+                <FormattedMessage
+                  id="pages.userList.createForm.nickname.tooltip"
+                  defaultMessage="Nickname is required (3 ~ 20 chars)"
+                />
+              ),
+            },
+          ]}
+          width="md"
+          name="nickname"
+        />
+        <ProFormText.Password
+          label={intl.formatMessage({
+            id: 'pages.userList.createForm.password',
+            defaultMessage: 'Password',
+          })}
+          rules={[
+            {
+              required: true,
+              min: 8,
+              max: 20,
+              message: (
+                <FormattedMessage
+                  id="pages.userList.createForm.password.tooltip"
+                  defaultMessage="Password is required (8 ~ 20 chars)"
+                />
+              ),
+            },
+          ]}
+          width="md"
+          name="password"
+        />
+        <ProFormText
+          label={intl.formatMessage({
+            id: 'pages.userList.createForm.avatarUri',
+            defaultMessage: 'Avatar URI',
+          })}
+          rules={[
+            {
+              required: true,
+              min: 3,
+              max: 20,
+              type: 'url',
+              message: (
+                <FormattedMessage
+                  id="pages.userList.createForm.avatarUri.tooltip"
+                  defaultMessage="Avatar URI is required to be a valid URL"
+                />
+              ),
+            },
+          ]}
+          width="xl"
+          name="avatar_uri"
+        />
       </ModalForm>
       <UpdateForm
         onSubmit={async (value) => {

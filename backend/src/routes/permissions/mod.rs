@@ -27,6 +27,11 @@ pub fn permissions_routes(state: AppState) -> Router<AppState> {
                 .layer(AuthLayer::new(state.clone(), Some("permissions.read".to_string()))),
         )
         .route(
+            "/",
+            delete(delete::delete_permissions)
+                .layer(AuthLayer::new(state.clone(), Some("permissions.delete".to_string()))),
+        )
+        .route(
             "/:id",
             delete(delete::delete_permission)
                 .layer(AuthLayer::new(state.clone(), Some("permissions.delete".to_string()))),

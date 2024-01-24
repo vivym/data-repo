@@ -24,4 +24,4 @@ pub use update::{
     update_by_id,
 };
 
-pub use delete::delete_by_id;
+pub use delete::{delete_by_id, delete_by_ids};

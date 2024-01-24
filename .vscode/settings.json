@@ -7,7 +7,7 @@
             "driver": "PostgreSQL",
             "name": "data-repo",
             "database": "data-repo",
-            "username": "viv",
+            "username": "yangming17",
             "password": ""
         }
     ]

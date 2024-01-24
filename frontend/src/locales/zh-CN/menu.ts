@@ -6,6 +6,8 @@ export default {
   'menu.admin.sub-page': '二级管理页',
   'menu.users': '用户管理',
   'menu.users.list': '用户列表',
+  'menu.users.groups': '组列表',
+  'menu.users.permissions': '权限列表',
   'menu.login': '登录',
   'menu.register': '注册',
   'menu.register-result': '注册结果',

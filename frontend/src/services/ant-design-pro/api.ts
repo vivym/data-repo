@@ -55,8 +55,116 @@ export async function listUsers(
   },
   options?: { [key: string]: any },
 ) {
-  console.log('params', params)
+  const res = await request<API.User>('/v1/users', {
+    method: 'GET',
+    params: {
+      skip: params.current && params.pageSize ? (params.current - 1) * params.pageSize : 0,
+      limit: params.pageSize ?? 20,
+    },
+    ...(options || {}),
+  });
+
+  return {
+    success: true,
+    ...res,
+  }
+}
+
+/** 新建用户 POST /v1/users */
+export async function addUser(options?: { [key: string]: any }) {
   return request<API.User>('/v1/users', {
+    method: 'POST',
+    data: {
+      method: 'post',
+      ...(options || {}),
+    }
+  });
+}
+
+/** 更新用户 PUT /v1/users */
+export async function updateUser(
+  params: {
+    userId: number;
+    updatedUser: API.User & { password?: string };
+  },
+  options?: { [key: string]: any },
+) {
+  return request<API.User>(`/v1/users/${params.userId}`, {
+    method: 'PUT',
+    data: {
+      method: 'put',
+      ...params.updatedUser,
+      ...(options || {}),
+    }
+  });
+}
+
+/** 激活用户 GET /v1/users/{id}/activate */
+export async function activateUser(
+  params: {
+    userId: number;
+  },
+  options?: { [key: string]: any },
+) {
+  return request<API.User>(`/v1/users/${params.userId}/activate`, {
+    method: 'GET',
+    ...(options || {}),
+  });
+}
+
+/** 停用用户 GET /v1/users/{id}/deactivate */
+export async function deactivateUser(
+  params: {
+    userId: number;
+  },
+  options?: { [key: string]: any }
+) {
+  return request<API.User>(`/v1/users/${params.userId}/deactivate`, {
+    method: 'GET',
+    ...(options || {}),
+  });
+}
+
+// deleteUser
+/** 删除用户 DELETE /v1/users/ */
+export async function deleteUsers(
+  params: {
+    ids: number[];
+  },
+  options?: { [key: string]: any }
+) {
+  return request<API.User>(`/v1/users`, {
+    method: 'DELETE',
+    data: {
+      ids: params.ids,
+    },
+    ...(options || {}),
+  });
+}
+
+/** 新建组 POST /v1/groups */
+export async function addGroup(options?: { [key: string]: any }) {
+  return request<API.User>('/v1/groups', {
+    method: 'POST',
+    data: {
+      method: 'post',
+      ...(options || {}),
+    }
+  });
+}
+
+/** 获取组列表 GET /v1/groups */
+export async function listGroups(
+  params: {
+    // query
+    /** 当前的页码 */
+    current?: number;
+    /** 页面的容量 */
+    pageSize?: number;
+  },
+  options?: { [key: string]: any },
+) {
+  return request<API.User>('/v1/groups', {
     method: 'GET',
     params: {
       skip: params.current && params.pageSize ? (params.current - 1) * params.pageSize : 0,
@@ -66,14 +174,69 @@ export async function listUsers(
   });
 }
 
-/** 新建用户 POST /v1/users */
-export async function addUser(options?: { [key: string]: any }) {
-  return request<API.User>('/v1/users', {
+// deleteUser
+/** 删除组 DELETE /v1/groups */
+export async function deleteGroups(
+  params: {
+    ids: number[];
+  },
+  options?: { [key: string]: any }
+) {
+  return request<API.User>(`/v1/groups`, {
+    method: 'DELETE',
+    data: {
+      ids: params.ids,
+    },
+    ...(options || {}),
+  });
+}
+
+/** 新建组 POST /v1/permissions */
+export async function addPermission(options?: { [key: string]: any }) {
+  return request<API.User>('/v1/permissions', {
     method: 'POST',
-    data:{
+    data: {
       method: 'post',
       ...(options || {}),
     }
+  });
+}
+
+/** 获取组列表 GET /v1/permissions */
+export async function listPermissions(
+  params: {
+    // query
+    /** 当前的页码 */
+    current?: number;
+    /** 页面的容量 */
+    pageSize?: number;
+  },
+  options?: { [key: string]: any },
+) {
+  return request<API.User>('/v1/permissions', {
+    method: 'GET',
+    params: {
+      skip: params.current && params.pageSize ? (params.current - 1) * params.pageSize : 0,
+      limit: params.pageSize ?? 20,
+    },
+    ...(options || {}),
+  });
+}
+
+// deletePermissions
+/** 删除权限 GET /v1/permissions */
+export async function deletePermissions(
+  params: {
+    ids: number[];
+  },
+  options?: { [key: string]: any }
+) {
+  return request<API.User>(`/v1/permissions`, {
+    method: 'DELETE',
+    data: {
+      ids: params.ids,
+    },
+    ...(options || {}),
   });
 }
 

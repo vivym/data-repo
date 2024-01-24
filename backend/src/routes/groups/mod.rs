@@ -27,6 +27,11 @@ pub fn groups_routes(state: AppState) -> Router<AppState> {
                 .layer(AuthLayer::new(state.clone(), Some("groups.read".to_string()))),
         )
         .route(
+            "/",
+            delete(delete::delete_groups)
+                .layer(AuthLayer::new(state.clone(), Some("groups.delete".to_string()))),
+        )
+        .route(
             "/:id",
             delete(delete::delete_group)
                 .layer(AuthLayer::new(state.clone(), Some("groups.delete".to_string()))),

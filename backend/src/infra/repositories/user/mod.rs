@@ -25,9 +25,10 @@ pub use update::{
     UpdatedUserDB,
     update_by_id,
     activate_by_id,
+    deactivate_by_id,
 };
 
-pub use delete::delete_by_id;
+pub use delete::{delete_by_id, delete_by_ids};
 
 pub use group::get_groups;
 

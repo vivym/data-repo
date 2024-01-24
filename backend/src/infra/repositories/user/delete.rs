@@ -26,3 +26,27 @@ pub async fn delete_by_id(
 
     Ok(())
 }
+
+pub async fn delete_by_ids(
+    db: &deadpool_diesel::postgres::Pool,
+    user_ids: Vec<i32>,
+) -> RepoResult<()> {
+    let conn = db
+        .get()
+        .await
+        .map_err(RepoError::Pool)?;
+
+    conn
+        .interact(move |conn| {
+            diesel::delete(
+                users::table
+                    .filter(users::id.eq_any(user_ids))
+            )
+            .execute(conn)
+        })
+        .await
+        .map_err(map_interact_error)?
+        .map_err(RepoError::Diesel)?;
+
+    Ok(())
+}
