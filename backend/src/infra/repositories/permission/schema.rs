@@ -4,7 +4,7 @@ use diesel::prelude::*;
 use crate::domain::models::permission::PermissionModel;
 use crate::infra::db::schema::permissions;
 
-#[derive(Queryable, Selectable, Identifiable)]
+#[derive(Queryable, Selectable, Identifiable, Clone)]
 #[diesel(table_name = permissions)]             // Use the 'permissions' table
 #[diesel(check_for_backend(diesel::pg::Pg))]    // Check compatibility with PostgreSQL
 pub struct PermissionDB {

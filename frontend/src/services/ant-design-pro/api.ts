@@ -52,6 +52,8 @@ export async function listUsers(
     current?: number;
     /** 页面的容量 */
     pageSize?: number;
+    withGroups?: boolean;
+    withPermissions?: boolean;
   },
   options?: { [key: string]: any },
 ) {
@@ -60,6 +62,8 @@ export async function listUsers(
     params: {
       skip: params.current && params.pageSize ? (params.current - 1) * params.pageSize : 0,
       limit: params.pageSize ?? 20,
+      groups: params.withGroups,
+      permissions: params.withPermissions,
     },
     ...(options || {}),
   });

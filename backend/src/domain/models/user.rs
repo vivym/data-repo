@@ -1,5 +1,7 @@
 use chrono::NaiveDateTime;
 
+use super::group::GroupModel;
+
 #[derive(Clone)]
 pub struct UserModel {
     pub id: i32,
@@ -8,6 +10,7 @@ pub struct UserModel {
     pub nickname: String,
     pub avatar_uri: String,
     pub is_active: bool,
+    pub groups: Option<Vec<GroupModel>>,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }
@@ -23,6 +26,7 @@ impl std::fmt::Debug for UserModel {
             .field("nickname", &self.nickname)
             .field("avatar_uri", &self.avatar_uri)
             .field("is_active", &self.is_active)
+            .field("groups", &self.groups)
             .field("created_at", &self.created_at)
             .field("updated_at", &self.updated_at)
             .finish()

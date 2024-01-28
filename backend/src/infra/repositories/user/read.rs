@@ -1,12 +1,19 @@
+use std::collections::HashSet;
+
 use diesel::prelude::*;
 use serde::Deserialize;
 
 use crate::domain::models::user::UserModel;
-use crate::infra::db::schema::users;
+use crate::infra::db::schema::{groups, groups_permissions_rel, permissions, users};
 use crate::infra::repositories::{
+    self,
     error::{RepoError, RepoResult, map_interact_error},
     default_skip,
     default_limit,
+    user_group_rel::UserGroupDB,
+    group::GroupDB,
+    group_permission_rel::GroupPermDB,
+    permission::PermissionDB,
 };
 use super::schema::UserDB;
 
@@ -15,6 +22,8 @@ pub struct UsersFilter {
     username: Option<String>,
     nickname: Option<String>,
     is_active: Option<bool>,
+    with_groups: Option<bool>,
+    with_permissions: Option<bool>,
     #[serde(default = "default_skip")]
     skip: i64,
     #[serde(default = "default_limit")]
@@ -105,7 +114,7 @@ pub async fn get_all(
         .await
         .map_err(RepoError::Pool)?;
 
-    let res = conn
+    let users = conn
         .interact(move |conn| {
             let mut query = users::table
                 .into_boxed::<diesel::pg::Pg>();
@@ -122,20 +131,41 @@ pub async fn get_all(
                 query = query.filter(users::is_active.eq(is_active));
             }
 
-            query = query
+            query
                 .offset(filter.skip)
-                .limit(filter.limit);
-
-            query.select(UserDB::as_select()).load::<UserDB>(conn)
+                .limit(filter.limit)
+                .select(UserDB::as_select())
+                .load::<UserDB>(conn)
         })
         .await
         .map_err(map_interact_error)?
         .map_err(RepoError::Diesel)?;
 
-    let users: Vec<UserModel> = res
-        .into_iter()
-        .map(Into::into)
-        .collect();
+        let mut users: Vec<UserModel> = users
+            .into_iter()
+            .map(Into::into)
+            .collect();
+
+        let user_ids = users
+            .iter()
+            .map(|u| u.id)
+            .collect::<Vec<i32>>();
+
+        if let Some(true) = filter.with_groups {
+            let group_ids = user_ids.clone(); // TODO: get groups from user ids
+
+            let groups_per_user = repositories::group::get_by_ids(
+                db, group_ids, filter.with_permissions.unwrap_or(false)
+            )
+                .await?;
+
+            users
+                .iter_mut()
+                .zip(groups_per_user)
+                .for_each(|(u, g)| {
+                    u.groups = g;
+                });
+        }
 
     Ok(users)
 }

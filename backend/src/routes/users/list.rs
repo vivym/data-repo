@@ -20,6 +20,8 @@ pub struct UserSearchQuery {
     pub email: Option<String>,
     /// Whether the user is active
     pub is_active: Option<bool>,
+    pub with_groups: Option<bool>,
+    pub with_permissions: Option<bool>,
     /// Skip, default: 0
     pub skip: Option<i64>,
     /// Limit, default: 20

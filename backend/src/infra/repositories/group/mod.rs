@@ -17,6 +17,7 @@ pub use read::{
     try_get_by_id,
     try_get_by_name,
     get_all,
+    get_by_ids,
 };
 
 pub use update::{
